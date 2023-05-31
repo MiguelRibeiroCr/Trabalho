@@ -1,50 +1,88 @@
 import { Camera, CameraType } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
-import { Button, View, StyleSheet } from 'react-native';
+import {View, StyleSheet, TouchableHighlight, Text } from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
+import { Image } from 'expo-image';
 
-export default function App (){
+export default function App() {
     const [image, setImage] = useState(null);
     const [camera, setCamera] = useState(null);
     const [permission, setPermission] = useState(null);
 
     useEffect(() => {
         (async () => {
-          const  cameraStatus  = await Camera.requestCameraPermissionsAsync();
-          setPermission(cameraStatus.status === 'granted');
+            const cameraStatus = await Camera.requestCameraPermissionsAsync();
+            setPermission(cameraStatus.status === 'granted');
+            await MediaLibrary.requestPermissionsAsync();
         })();
-      }, []);
+    }, []);
 
-      async function takePicture(){
-        if (camera){
-        
-        const photo = await camera.takePictureAsync();
-        console.log(photo.uri);
-      }
-    }  
+    async function takePicture() {
+        if (camera) {
 
-    return(
+            const { uri } = await camera.takePictureAsync();
+            console.log(uri);
+            setImage(uri);
+            await MediaLibrary.saveToLibraryAsync(uri);
+        }
+    }
+
+    return (
         <View style={styles.container}>
             <Camera
-            ref={(ref)=> setCamera(ref)}
-            style={styles.Camera}
-            type={CameraType.back}
-            ratio={'1:1'}
+                ref={(ref) => setCamera(ref)}
+                style={styles.Camera}
+                type={CameraType.back}
+                ratio={'1:1'}
             />
-            <Button title ="" onPress={()=>{takePicture()}}/>
-
+            <Image
+                style={styles.container}
+                source={image}
+                contentFit="cover"
+                transition={1000} />
+            <View style={styles.Center}>
+            <TouchableHighlight
+                style={styles.Button}
+                onPress={() => { takePicture() }}>
+                <Text
+                    style={{ color: '#fff', fontSize: 25 }}>
+                    Tirar Foto
+                </Text>
+            </TouchableHighlight>
+            </View>
         </View>
     );
-    
+
 }
 const styles = StyleSheet.create({
-    container:{
-        flex:1
+    container: {
+        flex: 1
+        
     },
 
-    Camera:{
-        aspectRatio:1,
+    Camera: {
+        aspectRatio: 1,
         flex: 1,
 
+    },
+
+    Button: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 15,
+        backgroundColor: 'blue',
+        width: 150,
+        height: 150,
+        borderRadius: 100,
+        position: 'absolute',
+        bottom: 50,
+        
+
+    },
+
+    Center:{
+        alignItems: 'center'
     }
-    
+
 });
